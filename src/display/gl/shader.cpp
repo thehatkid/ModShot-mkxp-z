@@ -46,11 +46,13 @@
 #include "simpleAlphaUni.frag.xxd"
 #include "tilemap.frag.xxd"
 #include "flashMap.frag.xxd"
+#ifndef MKXPZ_SIMPLE_SMOOTH_SCALING
 #include "bicubic.frag.xxd"
 #include "lanczos3.frag.xxd"
 #ifdef MKXPZ_SSL
 #include "xbrz.frag.xxd"
-#endif
+#endif // MKXPZ_SSL
+#endif // MKXPZ_SIMPLE_SMOOTH_SCALING
 #include "minimal.vert.xxd"
 #include "simple.vert.xxd"
 #include "simpleColor.vert.xxd"
@@ -385,6 +387,7 @@ void SimpleSpriteShader::setSpriteMat(const float value[16])
 	gl.UniformMatrix4fv(u_spriteMat, 1, GL_FALSE, value);
 }
 
+#ifndef MKXPZ_SIMPLE_SMOOTH_SCALING
 BicubicSpriteShader::BicubicSpriteShader()
 {
 	INIT_SHADER(sprite, bicubic, BicubicSpriteShader);
@@ -460,7 +463,8 @@ void XbrzSpriteShader::setTargetScale(const Vec2 &value)
 {
 	gl.Uniform2f(u_targetScale, value.x, value.y);
 }
-#endif
+#endif // MKXPZ_SSL
+#endif // MKXPZ_SIMPLE_SMOOTH_SCALING
 
 AlphaSpriteShader::AlphaSpriteShader()
 {
@@ -847,6 +851,7 @@ void BltShader::setOpacity(float value)
 	gl.Uniform1f(u_opacity, value);
 }
 
+#ifndef MKXPZ_SIMPLE_SMOOTH_SCALING
 BicubicShader::BicubicShader()
 {
 	INIT_SHADER(simple, bicubic, BicubicShader);
@@ -922,4 +927,5 @@ void XbrzShader::setTargetScale(const Vec2 &value)
 {
 	gl.Uniform2f(u_targetScale, value.x, value.y);
 }
-#endif
+#endif // MKXPZ_SSL
+#endif // MKXPZ_SIMPLE_SMOOTH_SCALING

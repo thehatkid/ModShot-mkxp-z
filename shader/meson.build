@@ -23,15 +23,20 @@ mkxp_shaders = files(
     'tilemap.frag',
     'tilemap.vert',
     'tilemapvx.vert',
-    'flashMap.frag',
-    'bicubic.frag',
-    'lanczos3.frag'
+    'flashMap.frag'
 )
 
-# xBRZ shader is licensed under GPLv3, so checking for enabled OpenSSL support
-# as it's also requires to be GPLv3 compatable
-if mkxp_gplv3 == true
-    mkxp_shaders += files('xbrz.frag')
+if get_option('simple_smooth_scaling') == false
+    mkxp_shaders += files(
+        'bicubic.frag',
+        'lanczos3.frag'
+    )
+
+    # xBRZ shader is licensed under GPLv3, so checking for enabled
+    # OpenSSL support as it's also requires to be GPLv3 compatible
+    if mkxp_gplv3 == true
+        mkxp_shaders += files('xbrz.frag')
+    endif
 endif
 
 mkxp_shaders_xxd = xxd_gen.process(mkxp_shaders)

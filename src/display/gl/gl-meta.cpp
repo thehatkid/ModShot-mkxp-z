@@ -206,6 +206,7 @@ static void _blitBegin(FBO::ID fbo, const Vec2i &size, int scaleIsSpecial)
 
 		switch (smoothScalingMethod(scaleIsSpecial))
 		{
+#ifndef MKXPZ_SIMPLE_SMOOTH_SCALING
 		case Bicubic:
 		{
 			BicubicShader &shader = shState->shaders().bicubic;
@@ -239,7 +240,8 @@ static void _blitBegin(FBO::ID fbo, const Vec2i &size, int scaleIsSpecial)
 		}
 
 			break;
-#endif
+#endif // MKXPZ_SSL
+#endif // MKXPZ_SIMPLE_SMOOTH_SCALING
 		default:
 		{
 			SimpleShader &shader = shState->shaders().simple;
@@ -310,6 +312,7 @@ void blitSource(TEXFBO &source, int scaleIsSpecial)
 	{
 		switch (smoothScalingMethod(scaleIsSpecial))
 		{
+#ifndef MKXPZ_SIMPLE_SMOOTH_SCALING
 		case Bicubic:
 		{
 			BicubicShader &shader = shState->shaders().bicubic;
@@ -335,7 +338,8 @@ void blitSource(TEXFBO &source, int scaleIsSpecial)
 		}
 
 			break;
-#endif
+#endif // MKXPZ_SSL
+#endif // MKXPZ_SIMPLE_SMOOTH_SCALING
 		default:
 		{
 			SimpleShader &shader = shState->shaders().simple;
@@ -381,7 +385,7 @@ void blitRectangle(const IntRect &src, const IntRect &dst, bool smooth)
 	}
 	else
 	{
-#ifdef MKXPZ_SSL
+#if !defined(MKXPZ_SIMPLE_SMOOTH_SCALING) && MKXPZ_SSL
 		if (shState->config().smoothScaling == xBRZ)
 		{
 			XbrzShader &shader = shState->shaders().xbrz;

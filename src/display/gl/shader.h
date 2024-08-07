@@ -330,6 +330,7 @@ private:
 	GLint u_source, u_destination, u_subRect, u_opacity;
 };
 
+#ifndef MKXPZ_SIMPLE_SMOOTH_SCALING
 class Lanczos3Shader : public ShaderBase
 {
 public:
@@ -403,6 +404,7 @@ protected:
 	GLint u_bc;
 };
 
+#ifdef MKXPZ_SSL
 class XbrzSpriteShader : public ShaderBase
 {
 public:
@@ -417,6 +419,8 @@ protected:
 	GLint u_spriteMat;
 	GLint u_targetScale;
 };
+#endif // MKXPZ_SSL
+#endif // MKXPZ_SIMPLE_SMOOTH_SCALING
 
 /* Global object containing all available shaders */
 struct ShaderSet
@@ -439,16 +443,18 @@ struct ShaderSet
 	SimpleMatrixShader simpleMatrix;
 	BlurShader blur;
 	TilemapVXShader tilemapVX;
+#ifndef MKXPZ_SIMPLE_SMOOTH_SCALING
 	BicubicShader bicubic;
 	Lanczos3Shader lanczos3;
 #ifdef MKXPZ_SSL
 	XbrzShader xbrz;
-#endif
+#endif // MKXPZ_SSL
 	Lanczos3SpriteShader lanczos3Sprite;
 	BicubicSpriteShader bicubicSprite;
 #ifdef MKXPZ_SSL
 	XbrzSpriteShader xbrzSprite;
-#endif
+#endif // MKXPZ_SSL
+#endif // MKXPZ_SIMPLE_SMOOTH_SCALING
 };
 
 #endif // SHADER_H

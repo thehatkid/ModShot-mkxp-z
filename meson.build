@@ -105,6 +105,10 @@ elif get_option('require_nanosleep') == 'true'
     mkxp_cflags += '-DMKXPZ_NANOSLEEP'
 endif
 
+if get_option('simple_smooth_scaling') == true
+    mkxp_cflags += '-DMKXPZ_SIMPLE_SMOOTH_SCALING'
+endif
+
 # Suppress compiler warnings
 # TODO: Reduce no-warning flags and fix warnings in code sources
 warn_args = [

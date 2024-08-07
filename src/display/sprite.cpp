@@ -734,6 +734,7 @@ void Sprite::draw()
     {
         switch (scalingMethod)
         {
+#ifndef MKXPZ_SIMPLE_SMOOTH_SCALING
         case Bicubic:
         {
             BicubicSpriteShader &shader = shState->shaders().bicubicSprite;
@@ -770,7 +771,8 @@ void Sprite::draw()
             base = &shader;
         }
             break;
-#endif
+#endif // MKXPZ_SSL
+#endif // MKXPZ_SIMPLE_SMOOTH_SCALING
         default:
         {
             SimpleSpriteShader &shader = shState->shaders().simpleSprite;
@@ -787,11 +789,12 @@ void Sprite::draw()
     
     p->bitmap->bindTex(*base, false);
 
-#ifdef MKXPZ_SSL
+#if !defined(MKXPZ_SIMPLE_SMOOTH_SCALING) && MKXPZ_SSL
     if (scalingMethod == xBRZ)
     {
         XbrzShader &shader = shState->shaders().xbrz;
-        shader.setTargetScale(Vec2((float)(shState->config().xbrzScalingFactor), (float)(shState->config().xbrzScalingFactor)));
+        float scalingFactor = (float)shState->config().xbrzScalingFactor;
+        shader.setTargetScale(Vec2(scalingFactor, scalingFactor));
     }
 #endif
     

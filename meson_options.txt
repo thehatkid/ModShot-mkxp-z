@@ -78,6 +78,13 @@ option(
     description: 'Toggles between using ghc/filesystem or C++11 <experimental/filesystem>'
 )
 
+option(
+    'simple_smooth_scaling',
+    type: 'boolean',
+    value: false,
+    description: 'Excludes more graphics smooth scaling variants to only Bilinear, for older GPUs support'
+)
+
 # Steamworks and Steamshim options
 option(
     'steamworks_sdk',
