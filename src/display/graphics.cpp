@@ -1485,16 +1485,15 @@ int Graphics::displayHeight() const {
 
 void Graphics::resizeScreen(int width, int height) {
     p->threadData->rqWindowAdjust.wait();
-    p->checkResize(true);
     
     Vec2i sizeLores(width, height);
-
+    
     if (shState->config().enableHires) {
         double framebufferScalingFactor = shState->config().framebufferScalingFactor;
         width = (int)lround(framebufferScalingFactor * width);
         height = (int)lround(framebufferScalingFactor * height);
     }
-
+    
     Vec2i size(width, height);
     
     if (p->scRes == size && p->scResLores == sizeLores)
@@ -1514,6 +1513,9 @@ void Graphics::resizeScreen(int width, int height) {
     p->screenQuad.setTexPosRect(screenRect, screenRect);
     
     glState.scissorBox.set(IntRect(0, 0, p->scRes.x, p->scRes.y));
+    
+    p->threadData->windowSizeMsg.post(p->winSize);
+    p->checkResize(true);
     
     shState->eThread().requestWindowResize(width, height);
 }
