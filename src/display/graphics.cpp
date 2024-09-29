@@ -1486,6 +1486,9 @@ int Graphics::displayHeight() const {
 void Graphics::resizeScreen(int width, int height) {
     p->threadData->rqWindowAdjust.wait();
     
+    width = (width > 0) ? width : 1;
+    height = (height > 0) ? height : 1;
+    
     Vec2i sizeLores(width, height);
     
     if (shState->config().enableHires) {

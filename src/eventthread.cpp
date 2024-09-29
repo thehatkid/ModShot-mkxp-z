@@ -730,8 +730,8 @@ void EventThread::requestWindowResize(int width, int height)
     shState->rtData().rqWindowAdjust.set();
     SDL_Event event;
     event.type = usrIdStart + REQUEST_WINRESIZE;
-    event.window.data1 = width;
-    event.window.data2 = height;
+    event.window.data1 = (width > 0) ? width : 1;
+    event.window.data2 = (height > 0) ? height : 1;
     SDL_PushEvent(&event);
 }
 
