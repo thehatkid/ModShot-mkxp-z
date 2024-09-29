@@ -485,6 +485,9 @@ int main(int argc, char *argv[]) {
     /* Request RGSS thread to stop */
     rtData.rqTerm.set();
 
+    /* Force clear atomics to prevent deadlocks */
+    rtData.rqWindowAdjust.clear();
+
     /* Wait for RGSS thread response */
     for (int i = 0; i < 1000; ++i) {
       /* We can stop waiting when the request was ack'd */
