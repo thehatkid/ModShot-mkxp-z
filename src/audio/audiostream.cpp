@@ -132,6 +132,10 @@ void AudioStream::play(const std::string &filename,
 			case ALStream::Paused :
 			case ALStream::Playing :
 				stream.stop();
+
+			case ALStream::Closed :
+			case ALStream::Stopped :
+				break;
 		}
 	}
 
