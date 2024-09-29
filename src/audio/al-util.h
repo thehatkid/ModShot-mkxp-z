@@ -27,6 +27,9 @@
 
 #include <SDL_audio.h>
 #include <assert.h>
+#include <cmath>
+
+#define GLOBAL_VOLUME 1.0f
 
 namespace AL
 {
@@ -168,7 +171,33 @@ namespace Source
 
 	inline void setVolume(Source::ID id, float value)
 	{
-		alSourcef(id.al, AL_GAIN, value);
+		/*
+		 * RPG Maker uses a -35 decibel scale for volume. 100% volume is 0 dB, 99%
+		 * volume is -0.35 dB, 98% volume is -0.7 dB, 97% volume is -1.05 dB and so
+		 * on. 0% volume is an exception - the scale is hardcoded to be silent at 0%
+		 * volume.
+		 *
+		 * This was deduced by running an RPG Maker XP game in Wine and attaching
+		 * winedbg to the game, with a breakpoint set in the
+		 * `IDirectSoundBuffer8::SetVolume` function in Wine's implementation of
+		 * dsound.dll. Chances are your Wine installation's dsound.dll will be
+		 * stripped, but you can easily find that function in Ghidra or whatever by
+		 * searching for strings, with the help of the source code of the function as
+		 * a reference:
+		 *
+		 * https://github.com/wine-mirror/wine/blob/1941a915368b8898da21d0dd4157fd68a4f4c9dd/dlls/dsound/buffer.c#L203
+		 *
+		 * Once you have a breakpoint at `IDirectSoundBuffer8::SetVolume`, all you
+		 * need to do is look at the stack in winedbg whenever the breakpoint is hit,
+		 * where the arguments to the function will be. Keep in mind that RPG Maker
+		 * calls `IDirectSoundBuffer8::SetVolume` once per frame per sound source, so
+		 * it'll be much easier for you if you modify your game's scripts to just play
+		 * one BGM sound at a known volume, and no other sounds.
+		 */
+		if (value > FLT_EPSILON) {
+			value = std::pow(10.0f, -(35.0f / 20.0f) * (1.0f - value));
+		}
+		alSourcef(id.al, AL_GAIN, value * GLOBAL_VOLUME);
 	}
 
 	inline void setPitch(Source::ID id, float value)
@@ -252,6 +281,5 @@ inline ALenum chooseALFormat(int sampleSize, int channelCount)
 
 #define AUDIO_SLEEP 10
 #define STREAM_BUF_SIZE 32768
-#define GLOBAL_VOLUME 0.8f
 
 #endif // ALUTIL_H

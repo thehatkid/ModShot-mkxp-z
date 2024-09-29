@@ -53,7 +53,7 @@ static ov_callbacks OvCallbacks =
 
 struct VorbisSource : ALDataSource
 {
-	SDL_RWops &src;
+	SDL_RWops src;
 
 	OggVorbis_File vf;
 
@@ -156,7 +156,7 @@ struct VorbisSource : ALDataSource
 		return info.rate;
 	}
 
-	void seekToOffset(float seconds)
+	void seekToOffset(double seconds)
 	{
 		if (seconds <= 0)
 		{
@@ -164,7 +164,7 @@ struct VorbisSource : ALDataSource
 			currentFrame = 0;
 		}
 
-		currentFrame = seconds * info.rate;
+		currentFrame = lround(seconds * info.rate);
 
 		if (loop.valid && currentFrame > loop.end)
 			currentFrame = loop.start;

@@ -237,11 +237,10 @@
     // Enable framebuffer blitting if the driver is capable of it.
     // Some drivers carry buggy implementations of this functionality,
     // so disabling it can be used as a workaround.
-    // Does nothing on macOS.
     // Force-disabled when "smoothScaling" or "smoothScalingDown" isn't
     // Nearest-Neighbor or Bilinear.
-    // (Default: false)
-    // 
+    // (Default: false on Windows platform, true on other platforms)
+    //
     // "enableBlitting": false,
 
     // Limit the maximum size (width and height dimensions) of most textures
@@ -294,9 +293,9 @@
     // "enableSettings": true,
 
     // Allow symlinks for game assets to be followed.
-    // (Default: false)
+    // (Default: true)
     // 
-    // "allowSymlinks": false,
+    // "allowSymlinks": true,
 
     // Organization and Application name to build the directory path
     // where mkxp-z will store game specific data

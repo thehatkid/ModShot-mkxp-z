@@ -107,7 +107,13 @@ EQUAL_FUN(Rect)
       rb_get_args(argc, argv, param_t_s, &p1, &p2, &p3, &p4 RB_ARG_END);       \
       k = new Klass(p1, p2, p3, p4);                                           \
     }                                                                          \
+    Klass *orig = getPrivateDataNoRaise<Klass>(self);                          \
+    if (orig) {                                                                \
+      *orig = *k;                                                              \
+      delete k;                                                                \
+    } else {                                                                   \
     setPrivateData(self, k);                                                   \
+    }                                                                          \
     return self;                                                               \
   }
 
@@ -208,11 +214,14 @@ INITCOPY_FUN(Tone)
 INITCOPY_FUN(Color)
 INITCOPY_FUN(Rect)
 
-#if RAPI_FULL > 187
+CLASS_ALLOCATE_PRE_INIT(Tone, ToneInitialize);
+CLASS_ALLOCATE_PRE_INIT(Color, ColorInitialize);
+CLASS_ALLOCATE_PRE_INIT(Rect, RectInitialize);
+
 #define INIT_BIND(Klass)                                                       \
   {                                                                            \
     klass = rb_define_class(#Klass, rb_cObject);                               \
-    rb_define_alloc_func(klass, classAllocate<&Klass##Type>);                  \
+    rb_define_alloc_func(klass, Klass##AllocatePreInit);                       \
     rb_define_class_method(klass, "_load", Klass##Load);                       \
     serializableBindingInit<Klass>(klass);                                     \
     _rb_define_method(klass, "initialize", Klass##Initialize);                 \
@@ -224,23 +233,6 @@ INITCOPY_FUN(Rect)
     _rb_define_method(klass, "to_s", Klass##Stringify);                        \
     _rb_define_method(klass, "inspect", Klass##Stringify);                     \
   }
-#else
-#define INIT_BIND(Klass)                                                       \
-  {                                                                            \
-    klass = rb_define_class(#Klass, rb_cObject);                               \
-    rb_define_alloc_func(klass, Klass##Allocate);                              \
-    rb_define_class_method(klass, "_load", Klass##Load);                       \
-    serializableBindingInit<Klass>(klass);                                     \
-    _rb_define_method(klass, "initialize", Klass##Initialize);                 \
-    _rb_define_method(klass, "initialize_copy", Klass##InitializeCopy);        \
-    _rb_define_method(klass, "set", Klass##Set);                               \
-    _rb_define_method(klass, "==", Klass##Equal);                              \
-    _rb_define_method(klass, "===", Klass##Equal);                             \
-    _rb_define_method(klass, "eql?", Klass##Equal);                            \
-    _rb_define_method(klass, "to_s", Klass##Stringify);                        \
-    _rb_define_method(klass, "inspect", Klass##Stringify);                     \
-  }
-#endif
 
 #define MRB_ATTR_R(Class, attr)                                                \
   mrb_define_method(mrb, klass, #attr, Class##Get_##attr, MRB_ARGS_NONE())

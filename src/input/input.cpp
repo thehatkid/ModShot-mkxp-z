@@ -1440,15 +1440,29 @@ int Input::dir8Value()
 int Input::mouseX()
 {
     RGSSThreadData &rtData = shState->rtData();
-    
-    return (p->mousePos[0] - rtData.screenOffset.x) * rtData.sizeResoRatio.x;
+
+    int hiresResult = (p->mousePos[0] - rtData.screenOffset.x) * rtData.sizeResoRatio.x;
+
+    if (shState->config().enableHires) {
+        double framebufferScalingFactor = shState->config().framebufferScalingFactor;
+        return (int)lround(hiresResult / framebufferScalingFactor);
+    }
+
+    return hiresResult;
 }
 
 int Input::mouseY()
 {
     RGSSThreadData &rtData = shState->rtData();
-    
-    return (p->mousePos[1] - rtData.screenOffset.y) * rtData.sizeResoRatio.y;
+
+    int hiresResult = (p->mousePos[1] - rtData.screenOffset.y) * rtData.sizeResoRatio.y;
+
+    if (shState->config().enableHires) {
+        double framebufferScalingFactor = shState->config().framebufferScalingFactor;
+        return (int)lround(hiresResult / framebufferScalingFactor);
+    }
+
+    return hiresResult;
 }
 
 int Input::scrollV()

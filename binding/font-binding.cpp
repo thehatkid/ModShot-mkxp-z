@@ -88,7 +88,15 @@ RB_METHOD(fontInitialize) {
    * However the same bug/behavior exists in all RM versions. */
   rb_iv_set(self, "name", namesObj);
 
-  setPrivateData(self, f);
+  Font *orig = getPrivateDataNoRaise<Font>(self);
+  if (orig)
+  {
+    *orig = *f;
+    delete f;
+    f = orig;
+  } else {
+    setPrivateData(self, f);
+  }
 
   /* Wrap property objects */
   f->initDynAttribs();

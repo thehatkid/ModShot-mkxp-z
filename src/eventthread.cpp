@@ -800,7 +800,9 @@ void EventThread::showMessageBox(const char *body, int flags)
     SDL_PushEvent(&event);
     
     /* Keep repainting screen while box is open */
-    shState->graphics().repaintWait(msgBoxDone);
+    try{
+        shState->graphics().repaintWait(msgBoxDone);
+    }catch(...){}
     /* Prevent endless loops */
     resetInputStates();
 }

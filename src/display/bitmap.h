@@ -171,9 +171,12 @@ public:
 
 private:
 	void releaseResources();
+	sigslot::connection loresDispCon;
 	const char *klassName() const { return "bitmap"; }
 
 	BitmapPrivate *p;
+
+	void loresDisposal();
 };
 
 #endif // BITMAP_H

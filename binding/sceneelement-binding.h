@@ -27,20 +27,21 @@
 #include "graphics.h"
 
 template<class C>
-RB_METHOD(sceneElementGetZ)
+RB_METHOD_GUARD(sceneElementGetZ)
 {
 	RB_UNUSED_PARAM;
 
 	SceneElement *se = getPrivateData<C>(self);
 
 	int value = 0;
-	GUARD_EXC( value = se->getZ(); );
+	value = se->getZ();
 
 	return rb_fix_new(value);
 }
+RB_METHOD_GUARD_END
 
 template<class C>
-RB_METHOD(sceneElementSetZ)
+RB_METHOD_GUARD(sceneElementSetZ)
 {
 	SceneElement *se = getPrivateData<C>(self);
 
@@ -51,22 +52,24 @@ RB_METHOD(sceneElementSetZ)
 
 	return rb_fix_new(z);
 }
+RB_METHOD_GUARD_END
 
 template<class C>
-RB_METHOD(sceneElementGetVisible)
+RB_METHOD_GUARD(sceneElementGetVisible)
 {
 	RB_UNUSED_PARAM;
 
 	SceneElement *se = getPrivateData<C>(self);
 
 	bool value = false;
-	GUARD_EXC( value = se->getVisible(); );
+	value = se->getVisible();
 
 	return rb_bool_new(value);
 }
+RB_METHOD_GUARD_END
 
 template<class C>
-RB_METHOD(sceneElementSetVisible)
+RB_METHOD_GUARD(sceneElementSetVisible)
 {
 	SceneElement *se = getPrivateData<C>(self);
 
@@ -75,8 +78,9 @@ RB_METHOD(sceneElementSetVisible)
 
 	GFX_GUARD_EXC( se->setVisible(visible); );
 
-    return rb_bool_new(visible);
+	return rb_bool_new(visible);
 }
+RB_METHOD_GUARD_END
 
 template<class C>
 void

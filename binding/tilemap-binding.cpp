@@ -35,7 +35,10 @@ DEF_TYPE_CUSTOMFREE(TilemapAutotiles, RUBY_TYPED_NEVER_FREE);
 #endif
 
 RB_METHOD(tilemapAutotilesSet) {
-    Tilemap::Autotiles *a = getPrivateData<Tilemap::Autotiles>(self);
+    Tilemap::Autotiles *a = getPrivateDataNoRaise<Tilemap::Autotiles>(self);
+    
+    if (!a)
+        return self;
     
     int i;
     VALUE bitmapObj;
@@ -93,12 +96,18 @@ RB_METHOD(tilemapInitialize) {
     
     t->initDynAttribs();
     
+    /* Dispose the old autotiles if we're reinitializing.
+     * See the comment in setPrivateData for more info. */
+    VALUE autotilesObj = rb_iv_get(self, "autotiles");
+    if (autotilesObj != Qnil)
+        setPrivateData(autotilesObj, 0);
+    
     wrapProperty(self, &t->getAutotiles(), "autotiles", TilemapAutotilesType);
     
     wrapProperty(self, &t->getColor(), "color", ColorType);
     wrapProperty(self, &t->getTone(), "tone", ToneType);
     
-    VALUE autotilesObj = rb_iv_get(self, "autotiles");
+    autotilesObj = rb_iv_get(self, "autotiles");
     
     VALUE ary = rb_ary_new2(7);
     for (int i = 0; i < 7; ++i)
@@ -116,8 +125,6 @@ RB_METHOD(tilemapInitialize) {
 
 RB_METHOD(tilemapGetAutotiles) {
     RB_UNUSED_PARAM;
-    
-    checkDisposed<Tilemap>(self);
     
     return rb_iv_get(self, "autotiles");
 }

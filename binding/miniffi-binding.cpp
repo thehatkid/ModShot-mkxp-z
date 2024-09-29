@@ -46,7 +46,7 @@ static void *MiniFFI_GetFunctionHandle(void *libhandle, const char *func) {
 // MiniFFI.new(library, function[, imports[, exports]])
 // Yields itself in blocks
 
-RB_METHOD(MiniFFI_initialize) {
+RB_METHOD_GUARD(MiniFFI_initialize) {
     VALUE libname, func, imports, exports;
     rb_scan_args(argc, argv, "22", &libname, &func, &imports, &exports);
     SafeStringValue(libname);
@@ -66,7 +66,7 @@ RB_METHOD(MiniFFI_initialize) {
     }
 #endif
     if (!hfunc)
-        rb_raise(rb_eRuntimeError, "%s", SDL_GetError());
+        throw Exception(Exception::RuntimeError, "%s", SDL_GetError());
     
     rb_iv_set(self, "_func", MVAL2RB((mffi_value)hfunc));
     rb_iv_set(self, "_funcname", func);
@@ -138,7 +138,7 @@ RB_METHOD(MiniFFI_initialize) {
     }
     
     if (MINIFFI_MAX_ARGS < RARRAY_LEN(ary_imports))
-        rb_raise(rb_eRuntimeError, "too many parameters: %ld/%ld\n",
+        throw Exception(Exception::RuntimeError, "too many parameters: %ld/%ld\n",
                  RARRAY_LEN(ary_imports), MINIFFI_MAX_ARGS);
     
     rb_iv_set(self, "_imports", ary_imports);
@@ -181,6 +181,7 @@ RB_METHOD(MiniFFI_initialize) {
         rb_yield(self);
     return Qnil;
 }
+RB_METHOD_GUARD_END
 
 #if RAPI_MAJOR >= 2
 typedef struct {
@@ -195,7 +196,7 @@ void* miniffi_call_cb(void *args) {
     }
 #endif
 
-RB_METHOD(MiniFFI_call) {
+RB_METHOD_GUARD(MiniFFI_call) {
     MiniFFIFuncArgs param;
 #define params param.params
     VALUE func = rb_iv_get(self, "_func");
@@ -206,7 +207,7 @@ RB_METHOD(MiniFFI_call) {
     int items = rb_scan_args(argc, argv, "0*", &args);
     int nimport = RARRAY_LEN(own_imports);
     if (items != nimport)
-        rb_raise(rb_eRuntimeError,
+        throw Exception(Exception::RuntimeError,
                  "wrong number of parameters: expected %d, got %d", nimport, items);
     
     for (int i = 0; i < nimport; i++) {
@@ -264,6 +265,7 @@ RB_METHOD(MiniFFI_call) {
             return MVAL2RB(0);
     }
 }
+RB_METHOD_GUARD_END
 
 void MiniFFIBindingInit() {
     VALUE cMiniFFI = rb_define_class("MiniFFI", rb_cObject);

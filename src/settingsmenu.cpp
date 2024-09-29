@@ -1027,7 +1027,7 @@ bool SettingsMenu::onEvent(const SDL_Event &event)
 			return false;
 		break;
 
-	case SDL_JOYBUTTONDOWN :
+	case SDL_CONTROLLERBUTTONDOWN :
 	case SDL_CONTROLLERBUTTONUP :
 	case SDL_CONTROLLERAXISMOTION :
 		if (!p->hasFocus)

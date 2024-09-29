@@ -105,7 +105,9 @@ MKXPZTouchBar *_sharedTouchBar;
         int percentage = (int)((float)value / (float)targetFrameRate * 100);
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            self->fpsLabel.stringValue = [NSString stringWithFormat:@"%@\n%i FPS (%i%%)", self.gameTitle, value, percentage];
+            @autoreleasepool {
+                self->fpsLabel.stringValue = [NSString stringWithFormat:@"%@\n%i FPS (%i%%)", self.gameTitle, value, percentage];
+            }
         });
     }
 }

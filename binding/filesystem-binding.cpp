@@ -52,6 +52,10 @@ DEF_ALLOCFUNC_CUSTOMFREE(FileInt, fileIntFreeInstance);
 #endif
 
 static VALUE fileIntForPath(const char *path, bool rubyExc) {
+    VALUE klass = rb_const_get(rb_cObject, rb_intern("FileInt"));
+    
+    VALUE obj = rb_obj_alloc(klass);
+    
     SDL_RWops *ops = SDL_AllocRW();
     
     try {
@@ -59,15 +63,8 @@ static VALUE fileIntForPath(const char *path, bool rubyExc) {
     } catch (const Exception &e) {
         SDL_FreeRW(ops);
         
-        if (rubyExc)
-            raiseRbExc(e);
-        else
-            throw e;
+        throw e;
     }
-    
-    VALUE klass = rb_const_get(rb_cObject, rb_intern("FileInt"));
-    
-    VALUE obj = rb_obj_alloc(klass);
     
     setPrivateData(obj, ops);
     
@@ -183,7 +180,7 @@ kernelLoadDataInt(const char *filename, bool rubyExc, bool raw) {
     return result;
 }
 
-RB_METHOD(kernelLoadData) {
+RB_METHOD_GUARD(kernelLoadData) {
     RB_UNUSED_PARAM;
     
     VALUE filename;
@@ -195,6 +192,7 @@ RB_METHOD(kernelLoadData) {
     rb_bool_arg(raw, &rawv);
     return kernelLoadDataInt(RSTRING_PTR(filename), true, rawv);
 }
+RB_METHOD_GUARD_END
 
 RB_METHOD(kernelSaveData) {
     RB_UNUSED_PARAM;

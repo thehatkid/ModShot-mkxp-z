@@ -99,6 +99,7 @@ typedef NSMutableArray<NSNumber *> BindingIndexArray;
 {
     [self setNotListening:true];
     [_window close];
+    SDL_RaiseWindow(shState->rtData().window);
 }
 
 -(SettingsMenu *)raise

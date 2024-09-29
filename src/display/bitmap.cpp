@@ -512,27 +512,35 @@ Bitmap::Bitmap(const char *filename)
     }
 
     BitmapOpenHandler handler;
-    shState->fileSystem().openRead(handler, filename);
-    
-    if (!handler.error.empty()) {
-        // Not loaded with SDL, but I want it to be caught with the same exception type
-        throw Exception(Exception::SDLError, "Error loading image '%s': %s", filename, handler.error.c_str());
-    }
-    else if (!handler.gif && !handler.surface) {
-        throw Exception(Exception::SDLError, "Error loading image '%s': %s",
-                        filename, SDL_GetError());
+    try {
+        shState->fileSystem().openRead(handler, filename);
+        
+        if (!handler.error.empty()) {
+            // Not loaded with SDL, but I want it to be caught with the same exception type
+            throw Exception(Exception::SDLError, "Error loading image '%s': %s", filename, handler.error.c_str());
+        }
+        else if (!handler.gif && !handler.surface) {
+            throw Exception(Exception::SDLError, "Error loading image '%s': %s",
+                            filename, SDL_GetError());
+        }
+    } catch (const Exception &e) {
+        if (hiresBitmap)
+            delete hiresBitmap;
+        throw e;
     }
     
     if (handler.gif) {
-        p = new BitmapPrivate(this);
-
-        p->selfHires = hiresBitmap;
-        
         if (handler.gif->width >= (uint32_t)glState.caps.maxTexSize || handler.gif->height > (uint32_t)glState.caps.maxTexSize)
         {
+            if (hiresBitmap)
+                delete hiresBitmap;
             throw new Exception(Exception::MKXPError, "Animation too large (%ix%i, max %ix%i)",
                                 handler.gif->width, handler.gif->height, glState.caps.maxTexSize, glState.caps.maxTexSize);
         }
+        
+        p = new BitmapPrivate(this);
+        
+        p->selfHires = hiresBitmap;
         
         if (handler.gif->frame_count == 1) {
             TEXFBO texfbo;
@@ -544,6 +552,10 @@ Bitmap::Bitmap(const char *filename)
                 gif_finalise(handler.gif);
                 delete handler.gif;
                 delete handler.gif_data;
+                
+                delete p;
+                if (hiresBitmap)
+                    delete hiresBitmap;
                 
                 throw e;
             }
@@ -582,8 +594,7 @@ Bitmap::Bitmap(const char *filename)
             if (i > 0) {
                 int status = gif_decode_frame(handler.gif, i);
                 if (status != GIF_OK && status != GIF_WORKING) {
-                    for (TEXFBO &frame : p->animation.frames)
-                        shState->texPool().release(frame);
+                    releaseResources();
                     
                     gif_finalise(handler.gif);
                     delete handler.gif;
@@ -600,8 +611,7 @@ Bitmap::Bitmap(const char *filename)
             }
             catch (const Exception &e)
             {
-                for (TEXFBO &frame : p->animation.frames)
-                    shState->texPool().release(frame);
+                releaseResources();
                 
                 gif_finalise(handler.gif);
                 delete handler.gif;
@@ -643,7 +653,14 @@ Bitmap::Bitmap(int width, int height, bool isHires)
         hiresBitmap->setLores(this);
     }
 
-    TEXFBO tex = shState->texPool().request(width, height);
+    TEXFBO tex;
+    try {
+        tex = shState->texPool().request(width, height);
+    } catch (const Exception &e) {
+        if (hiresBitmap)
+            delete hiresBitmap;
+        throw e;
+    }
     
     p = new BitmapPrivate(this);
     p->gl = tex;
@@ -716,7 +733,12 @@ Bitmap::Bitmap(const Bitmap &other, int frame)
     
     // TODO: Clean me up
     if (!other.isAnimated() || frame >= -1) {
-        p->gl = shState->texPool().request(other.width(), other.height());
+        try {
+            p->gl = shState->texPool().request(other.width(), other.height());
+        } catch (const Exception &e) {
+            delete p;
+            throw e;
+        }
         
         GLMeta::blitBegin(p->gl);
         // Blit just the current frame of the other animated bitmap
@@ -745,8 +767,7 @@ Bitmap::Bitmap(const Bitmap &other, int frame)
             try {
                 newframe = shState->texPool().request(p->animation.width, p->animation.height);
             } catch(const Exception &e) {
-                for (TEXFBO &f : p->animation.frames)
-                    shState->texPool().release(f);
+                releaseResources();
                 throw e;
             }
             
@@ -773,10 +794,15 @@ Bitmap::Bitmap(TEXFBO &other)
     }
 
     p = new BitmapPrivate(this);
-
-    p->gl = shState->texPool().request(other.width, other.height);
-
     p->selfHires = hiresBitmap;
+
+    try {
+        p->gl = shState->texPool().request(other.width, other.height);
+    } catch (const Exception &e) {
+        delete p;
+        throw e;
+    }
+
     if (p->selfHires != nullptr) {
         p->gl.selfHires = &p->selfHires->getGLTypes();
     }
@@ -808,6 +834,8 @@ Bitmap::Bitmap(SDL_Surface *imgSurf, SDL_Surface *imgSurfHires, bool forceMega)
 Bitmap::~Bitmap()
 {
     dispose();
+
+    loresDispCon.disconnect();
 }
 
 void Bitmap::initFromSurface(SDL_Surface *imgSurf, Bitmap *hiresBitmap, bool forceMega)
@@ -834,6 +862,8 @@ void Bitmap::initFromSurface(SDL_Surface *imgSurf, Bitmap *hiresBitmap, bool for
         }
         catch (const Exception &e)
         {
+            if (hiresBitmap)
+                delete hiresBitmap;
             SDL_FreeSurface(imgSurf);
             throw e;
         }
@@ -847,6 +877,8 @@ void Bitmap::initFromSurface(SDL_Surface *imgSurf, Bitmap *hiresBitmap, bool for
         
         TEX::bind(p->gl.tex);
         TEX::uploadImage(p->gl.width, p->gl.height, imgSurf->pixels, GL_RGBA);
+        
+        SDL_FreeSurface(imgSurf);
     }
     
     p->addTaintedArea(rect());
@@ -900,6 +932,7 @@ void Bitmap::setLores(Bitmap *lores) {
     guardDisposed();
 
     p->selfLores = lores;
+    loresDispCon = lores->wasDisposed.connect(&Bitmap::loresDisposal, this);
 }
 
 bool Bitmap::isMega() const{
@@ -2201,10 +2234,12 @@ void Bitmap::setFont(Font &value)
 void Bitmap::setInitFont(Font *value)
 {
     if (hasHires()) {
-        Font *hiresFont = new Font(*value);
-        // Disable the illegal font size check when creating a high-res font.
-        hiresFont->setSize(hiresFont->getSize() * p->selfHires->width() / width(), false);
-        p->selfHires->setInitFont(hiresFont);
+        Font *hiresFont = p->selfHires->p->font;
+        if (hiresFont && hiresFont != &shState->defaultFont())
+        {
+            // Disable the illegal font size check when creating a high-res font.
+            hiresFont->setSize(hiresFont->getSize() * p->selfHires->width() / width(), false);
+        }
     }
 
     p->font = value;
@@ -2362,6 +2397,7 @@ int Bitmap::currentFrameI() const
 int Bitmap::addFrame(Bitmap &source, int position)
 {
     guardDisposed();
+    source.guardDisposed();
     
     GUARD_MEGA;
     
@@ -2611,4 +2647,10 @@ void Bitmap::releaseResources()
         shState->texPool().release(p->gl);
     
     delete p;
+}
+
+void Bitmap::loresDisposal()
+{
+    loresDispCon.disconnect();
+    dispose();
 }

@@ -127,10 +127,10 @@ struct AudioStream
 	void play(const std::string &filename,
 	          int volume,
 	          int pitch,
-	          float offset = 0);
+	          double offset = 0);
 	void stop();
 	void fadeOut(int duration);
-	void seek(float offset);
+	void seek(double offset);
 
 	/* Any access to this classes 'stream' member,
 	 * whether state query or modification, must be
@@ -141,7 +141,7 @@ struct AudioStream
 	void setVolume(VolumeType type, float value);
 	float getVolume(VolumeType type);
 
-	float playingOffset();
+	double playingOffset();
 
 private:
 	float volumes[VolumeTypeCount];

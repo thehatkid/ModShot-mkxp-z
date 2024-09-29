@@ -31,12 +31,15 @@ struct Exception
 	enum Type
 	{
 		RGSSError,
+		Reset,
 		NoFileError,
 		IOError,
 
 		/* Already defined by ruby */
 		TypeError,
 		ArgumentError,
+		SystemExit,
+		RuntimeError,
 
 		/* New types introduced in mkxp */
 		PHYSFSError,

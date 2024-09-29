@@ -172,7 +172,7 @@ void SoundEmitter::play(const std::string &filename,
 	if (switchBuffer)
 		AL::Source::attachBuffer(src, buffer->alBuffer);
 
-	AL::Source::setVolume(src, _volume * GLOBAL_VOLUME);
+	AL::Source::setVolume(src, _volume);
 	AL::Source::setPitch(src, _pitch);
 
 	AL::Source::play(src);

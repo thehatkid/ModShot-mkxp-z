@@ -84,27 +84,29 @@ DEF_GFX_PROP_B(Sprite, Mirror)
 DEF_GFX_PROP_B(Sprite, PatternTile)
 DEF_GFX_PROP_B(Sprite, Invert)
 
-RB_METHOD(spriteWidth) {
+RB_METHOD_GUARD(spriteWidth) {
     RB_UNUSED_PARAM;
     
     Sprite *s = getPrivateData<Sprite>(self);
     
     int value = 0;
-    GUARD_EXC(value = s->getWidth();)
+    value = s->getWidth();
     
     return rb_fix_new(value);
 }
+RB_METHOD_GUARD_END
 
-RB_METHOD(spriteHeight) {
+RB_METHOD_GUARD(spriteHeight) {
     RB_UNUSED_PARAM;
     
     Sprite *s = getPrivateData<Sprite>(self);
     
     int value = 0;
-    GUARD_EXC(value = s->getHeight();)
+    value = s->getHeight();
     
     return rb_fix_new(value);
 }
+RB_METHOD_GUARD_END
 
 void spriteBindingInit() {
     VALUE klass = rb_define_class("Sprite", rb_cObject);

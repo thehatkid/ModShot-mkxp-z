@@ -173,7 +173,7 @@ void Config::read(int argc, char *argv[]) {
         {"anyAltToggleFS", false},
         {"enableReset", true},
         {"enableSettings", true},
-        {"allowSymlinks", false},
+        {"allowSymlinks", true},
         {"dataPathOrg", ""},
         {"dataPathApp", ""},
         {"iconPath", ""},

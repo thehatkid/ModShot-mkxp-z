@@ -10,10 +10,6 @@
 #include "util/json5pp.hpp"
 #include "binding-util.h"
 
-#if RAPI_MAJOR >= 2
-#include <ruby/thread.h>
-#endif
-
 #include "net/net.h"
 
 VALUE stringMap2hash(mkxp_net::StringMap &map) {
@@ -78,16 +74,14 @@ VALUE formResponse(mkxp_net::HTTPResponse &res) {
 void* httpGetInternal(void *req) {
     VALUE ret;
     
-    GUARD_EXC(
-              mkxp_net::HTTPResponse res = ((mkxp_net::HTTPRequest*)req)->get();
-              ret = formResponse(res);
-              );
+    mkxp_net::HTTPResponse res = ((mkxp_net::HTTPRequest*)req)->get();
+    ret = formResponse(res);
     
     return (void*)ret;
 }
 #endif
 
-RB_METHOD(httpGet) {
+RB_METHOD_GUARD(httpGet) {
     RB_UNUSED_PARAM;
     
     VALUE path, rheaders, redirect;
@@ -102,11 +96,12 @@ RB_METHOD(httpGet) {
         req.headers().insert(headers.begin(), headers.end());
     }
 #if RAPI_MAJOR >= 2
-    return (VALUE)rb_thread_call_without_gvl(httpGetInternal, &req, 0, 0);
+    return (VALUE)drop_gvl_guard(httpGetInternal, &req, 0, 0);
 #else
     return (VALUE)httpGetInternal(&req);
 #endif
 }
+RB_METHOD_GUARD_END
 
 #if RAPI_MAJOR >= 2
 
@@ -121,16 +116,14 @@ void* httpPostInternal(void *args) {
     mkxp_net::HTTPRequest *req = ((httpPostInternalArgs*)args)->req;
     mkxp_net::StringMap *postData = ((httpPostInternalArgs*)args)->postData;
     
-    GUARD_EXC(
-              mkxp_net::HTTPResponse res = req->post(*postData);
-              ret = formResponse(res);
-              );
+    mkxp_net::HTTPResponse res = req->post(*postData);
+    ret = formResponse(res);
     
     return (void*)ret;
 }
 #endif
 
-RB_METHOD(httpPost) {
+RB_METHOD_GUARD(httpPost) {
     RB_UNUSED_PARAM;
     
     VALUE path, postDataHash, rheaders, redirect;
@@ -148,11 +141,12 @@ RB_METHOD(httpPost) {
     mkxp_net::StringMap postData = hash2StringMap(postDataHash);
     httpPostInternalArgs args {&req, &postData};
 #if RAPI_MAJOR >= 2
-    return (VALUE)rb_thread_call_without_gvl(httpPostInternal, &args, 0, 0);
+    return (VALUE)drop_gvl_guard(httpPostInternal, &args, 0, 0);
 #else
     return httpPostInternal(&args);
 #endif
 }
+RB_METHOD_GUARD_END
 
 #if RAPI_MAJOR >= 2
 typedef struct {
@@ -168,16 +162,14 @@ void* httpPostBodyInternal(void *args) {
     const char *reqbody = ((httpPostBodyInternalArgs*)args)->body;
     const char *reqctype = ((httpPostBodyInternalArgs*)args)->ctype;
     
-    GUARD_EXC(
-              mkxp_net::HTTPResponse res = req->post(reqbody, reqctype);
-              ret = formResponse(res);
-              );
+    mkxp_net::HTTPResponse res = req->post(reqbody, reqctype);
+    ret = formResponse(res);
     
     return (void*)ret;
 }
 #endif
 
-RB_METHOD(httpPostBody) {
+RB_METHOD_GUARD(httpPostBody) {
     RB_UNUSED_PARAM;
     
     VALUE path, body, ctype, rheaders;
@@ -195,11 +187,12 @@ RB_METHOD(httpPostBody) {
     
     httpPostBodyInternalArgs args {&req, RSTRING_PTR(body), RSTRING_PTR(ctype)};
 #if RAPI_MAJOR >= 2
-    return (VALUE)rb_thread_call_without_gvl(httpPostBodyInternal, &args, 0, 0);
+    return (VALUE)drop_gvl_guard(httpPostBodyInternal, &args, 0, 0);
 #else
     return httpPostBodyInternal(&args);
 #endif
 }
+RB_METHOD_GUARD_END
 
 VALUE json2rb(json5pp::value const &v) {
     if (v.is_null())
@@ -280,13 +273,13 @@ json5pp::value rb2json(VALUE v) {
         return ret_value;
     }
     
-    raiseRbExc(Exception(Exception::MKXPError, "Invalid value for JSON: %s", RSTRING_PTR(rb_inspect(v))));
+    throw Exception(Exception::MKXPError, "Invalid value for JSON: %s", RSTRING_PTR(rb_inspect(v)));
     
     // This should be unreachable
     return json5pp::value(0);
 }
 
-RB_METHOD(httpJsonParse) {
+RB_METHOD_GUARD(httpJsonParse) {
     RB_UNUSED_PARAM;
     
     VALUE jsonv;
@@ -298,13 +291,14 @@ RB_METHOD(httpJsonParse) {
         v = json5pp::parse5(RSTRING_PTR(jsonv));
     }
     catch (const std::exception &e) {
-        raiseRbExc(Exception(Exception::MKXPError, "Failed to parse JSON: %s", e.what()));
+        throw Exception(Exception::MKXPError, "Failed to parse JSON: %s", e.what());
     }
     
     return json2rb(v);
 }
+RB_METHOD_GUARD_END
 
-RB_METHOD(httpJsonStringify) {
+RB_METHOD_GUARD(httpJsonStringify) {
     RB_UNUSED_PARAM;
     
     VALUE obj;
@@ -313,6 +307,7 @@ RB_METHOD(httpJsonStringify) {
     json5pp::value v = rb2json(obj);
     return rb_utf8_str_new_cstr(v.stringify5(json5pp::rule::space_indent<>()).c_str());
 }
+RB_METHOD_GUARD_END
 
 void httpBindingInit() {
     VALUE mNet = rb_define_module("HTTPLite");

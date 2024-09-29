@@ -8,15 +8,19 @@
 
 std::string systemImpl::getLanguage()
 {
-    NSString *languageCode = NSLocale.currentLocale.languageCode;
-    NSString *countryCode = NSLocale.currentLocale.countryCode;
-    return std::string([NSString stringWithFormat:@"%@_%@", languageCode, countryCode].UTF8String);
+    @autoreleasepool {
+        NSString *languageCode = NSLocale.currentLocale.languageCode;
+        NSString *countryCode = NSLocale.currentLocale.countryCode;
+        return std::string([NSString stringWithFormat:@"%@_%@", languageCode, countryCode].UTF8String);
+    }
 }
 
 std::string systemImpl::getUserName()
 {
-    NSString *name = NSUserName();
-    return std::string(name.UTF8String);
+    @autoreleasepool {
+        NSString *name = NSUserName();
+        return std::string(name.UTF8String);
+    }
 }
 
 std::string systemImpl::getUserFullName()
@@ -79,8 +83,10 @@ bool isMetalSupported()
 
 std::string getPlistValue(const char *key)
 {
-    NSString *hash = [[NSBundle mainBundle] objectForInfoDictionaryKey:@(key)];
-    if (hash != nil)
-        return std::string(hash.UTF8String);
-    return "";
+    @autoreleasepool {
+        NSString *hash = [[NSBundle mainBundle] objectForInfoDictionaryKey:@(key)];
+        if (hash != nil)
+            return std::string(hash.UTF8String);
+        return "";
+    }
 }

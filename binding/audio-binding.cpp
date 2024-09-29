@@ -25,17 +25,18 @@
 #include "exception.h"
 
 #define DEF_PLAY_STOP_POS(entity) \
-	RB_METHOD(audio_##entity##Play) \
+	RB_METHOD_GUARD(audio_##entity##Play) \
 	{ \
 		RB_UNUSED_PARAM; \
 		const char *filename; \
 		int volume = 100; \
 		int pitch = 100; \
 		double pos = 0.0; \
-        rb_get_args(argc, argv, "z|iif", &filename, &volume, &pitch, &pos RB_ARG_END); \
-		GUARD_EXC( shState->audio().entity##Play(filename, volume, pitch, pos); ) \
+		rb_get_args(argc, argv, "z|iif", &filename, &volume, &pitch, &pos RB_ARG_END); \
+		shState->audio().entity##Play(filename, volume, pitch, pos); \
 		return Qnil; \
 	} \
+	RB_METHOD_GUARD_END \
 	RB_METHOD(audio_##entity##Stop) \
 	{ \
 		RB_UNUSED_PARAM; \
@@ -49,16 +50,17 @@
 	}
 
 #define DEF_PLAY_STOP(entity) \
-	RB_METHOD(audio_##entity##Play) \
+	RB_METHOD_GUARD(audio_##entity##Play) \
 	{ \
 		RB_UNUSED_PARAM; \
 		const char *filename; \
 		int volume = 100; \
 		int pitch = 100; \
 		rb_get_args(argc, argv, "z|ii", &filename, &volume, &pitch RB_ARG_END); \
-		GUARD_EXC( shState->audio().entity##Play(filename, volume, pitch); ) \
+		shState->audio().entity##Play(filename, volume, pitch); \
 		return Qnil; \
 	} \
+	RB_METHOD_GUARD_END \
 	RB_METHOD(audio_##entity##Stop) \
 	{ \
 		RB_UNUSED_PARAM; \
@@ -87,7 +89,7 @@ RB_METHOD(audio_##entity##Fade) \
 
 #define MAYBE_NIL_TRACK(t) t == Qnil ? -127 : NUM2INT(t)
 
-RB_METHOD(audio_bgmPlay)
+RB_METHOD_GUARD(audio_bgmPlay)
 {
     RB_UNUSED_PARAM;
     const char *filename;
@@ -96,9 +98,10 @@ RB_METHOD(audio_bgmPlay)
     double pos = 0.0;
     VALUE track = Qnil;
     rb_get_args(argc, argv, "z|iifo", &filename, &volume, &pitch, &pos, &track RB_ARG_END);
-    GUARD_EXC( shState->audio().bgmPlay(filename, volume, pitch, pos, MAYBE_NIL_TRACK(track)); )
+    shState->audio().bgmPlay(filename, volume, pitch, pos, MAYBE_NIL_TRACK(track));
     return Qnil;
 }
+RB_METHOD_GUARD_END
 
 RB_METHOD(audio_bgmStop)
 {
@@ -117,25 +120,27 @@ RB_METHOD(audio_bgmPos)
     return rb_float_new(shState->audio().bgmPos(MAYBE_NIL_TRACK(track)));
 }
 
-RB_METHOD(audio_bgmGetVolume)
+RB_METHOD_GUARD(audio_bgmGetVolume)
 {
     RB_UNUSED_PARAM;
     VALUE track = Qnil;
     rb_get_args(argc, argv, "|o", &track RB_ARG_END);
     int ret = 0;
-    GUARD_EXC( ret = shState->audio().bgmGetVolume(MAYBE_NIL_TRACK(track)); )
+    ret = shState->audio().bgmGetVolume(MAYBE_NIL_TRACK(track));
     return rb_fix_new(ret);
 }
+RB_METHOD_GUARD_END
 
-RB_METHOD(audio_bgmSetVolume)
+RB_METHOD_GUARD(audio_bgmSetVolume)
 {
     RB_UNUSED_PARAM;
     int volume;
     VALUE track = Qnil;
     rb_get_args(argc, argv, "i|o", &volume, &track RB_ARG_END);
-    GUARD_EXC( shState->audio().bgmSetVolume(volume, MAYBE_NIL_TRACK(track)); )
+    shState->audio().bgmSetVolume(volume, MAYBE_NIL_TRACK(track));
     return Qnil;
 }
+RB_METHOD_GUARD_END
 
 DEF_PLAY_STOP_POS( bgs )
 

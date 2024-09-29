@@ -44,7 +44,7 @@ RB_METHOD(windowInitialize) {
     return self;
 }
 
-RB_METHOD(windowUpdate) {
+RB_METHOD_GUARD(windowUpdate) {
     RB_UNUSED_PARAM;
     
     Window *w = getPrivateData<Window>(self);
@@ -53,6 +53,7 @@ RB_METHOD(windowUpdate) {
     
     return Qnil;
 }
+RB_METHOD_GUARD_END
 
 DEF_GFX_PROP_OBJ_REF(Window, Bitmap, Windowskin, "windowskin")
 DEF_GFX_PROP_OBJ_REF(Window, Bitmap, Contents, "contents")
