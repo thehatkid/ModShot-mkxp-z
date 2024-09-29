@@ -364,17 +364,33 @@ void blitRectangle(const IntRect &src, const Vec2i &dstPos)
 void blitRectangle(const IntRect &src, const IntRect &dst, bool smooth)
 {
 	// Handle high-res dest
-	int scaledDstX = dst.x * blitDstWidthHires / blitDstWidthLores;
-	int scaledDstY = dst.y * blitDstHeightHires / blitDstHeightLores;
-	int scaledDstWidth = dst.w * blitDstWidthHires / blitDstWidthLores;
-	int scaledDstHeight = dst.h * blitDstHeightHires / blitDstHeightLores;
+	float blitDstWidthResScale = 1.0;
+	float blitDstHeightResScale = 1.0;
+
+	if (blitDstWidthLores != 0)
+		blitDstWidthResScale = blitDstWidthHires / blitDstWidthLores;
+	if (blitDstHeightLores != 0)
+		blitDstHeightResScale = blitDstHeightHires / blitDstHeightLores;
+
+	int scaledDstX = dst.x * blitDstWidthResScale;
+	int scaledDstY = dst.y * blitDstHeightResScale;
+	int scaledDstWidth = dst.w * blitDstWidthResScale;
+	int scaledDstHeight = dst.h * blitDstHeightResScale;
 	IntRect dstScaled(scaledDstX, scaledDstY, scaledDstWidth, scaledDstHeight);
 
 	// Handle high-res source
-	int scaledSrcX = src.x * blitSrcWidthHires / blitSrcWidthLores;
-	int scaledSrcY = src.y * blitSrcHeightHires / blitSrcHeightLores;
-	int scaledSrcWidth = src.w * blitSrcWidthHires / blitSrcWidthLores;
-	int scaledSrcHeight = src.h * blitSrcHeightHires / blitSrcHeightLores;
+	float blitSrcWidthResScale = 1.0;
+	float blitSrcHeightResScale = 1.0;
+
+	if (blitSrcWidthLores != 0)
+		blitSrcWidthResScale = blitSrcWidthHires / blitSrcWidthLores;
+	if (blitSrcHeightLores != 0)
+		blitSrcHeightResScale = blitSrcHeightHires / blitSrcHeightLores;
+
+	int scaledSrcX = src.x * blitSrcWidthResScale;
+	int scaledSrcY = src.y * blitSrcHeightResScale;
+	int scaledSrcWidth = src.w * blitSrcWidthResScale;
+	int scaledSrcHeight = src.h * blitSrcHeightResScale;
 	IntRect srcScaled(scaledSrcX, scaledSrcY, scaledSrcWidth, scaledSrcHeight);
 
 	if (HAVE_NATIVE_BLIT)
